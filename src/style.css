@@ -90,3 +90,43 @@ canvas {
         scale: 1;
     }
 }
+
+.ship-selection {
+    display: flex;
+    gap: 1.5em;
+    justify-content: center;
+    margin-bottom: 1em;
+}
+.ship-btn {
+    border: 2px solid transparent;
+    background: none;
+    padding: 0.5em;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: border 0.2s;
+}
+.ship-btn.selected {
+    border: 2px solid #941CFF;
+}
+.game-over-buttons {
+    display: flex;
+    gap: 2em;
+    justify-content: center;
+    margin-top: 1em;
+}
+.button-restart,
+.button-main-menu {
+    min-width: 120px;
+    padding: 0.5em 1.2em;
+    font-size: 1rem;
+    border-radius: 6px;
+    border: none;
+    background: #262b44;
+    color: #fff;
+    cursor: pointer;
+    transition: background 0.2s;
+}
+.button-restart:hover,
+.button-main-menu:hover {
+    background: #941CFF;
+}

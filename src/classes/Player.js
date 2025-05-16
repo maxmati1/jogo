@@ -2,13 +2,13 @@ import {
     INITIAL_FRAMES,
     PATH_ENGINE_IMAGE,
     PATH_ENGINE_SPRITES,
-    PATH_SPACESHIP_IMAGE,
 } from "../utils/constants.js";
 
 import Projectile from "./Projectile.js";
 
 class Player {
-    constructor(canvasWidth, canvasHeight) {
+    // Adiciona shipType como parâmetro para selecionar a nave
+    constructor(canvasWidth, canvasHeight, shipType = 0) {
         this.alive = true;  // flag pra saber se o jogador está vivo
         this.width = 48 * 2;  // tamanho da nave na largura
         this.height = 48 * 2; // tamanho da nave na altura
@@ -20,8 +20,15 @@ class Player {
             y: canvasHeight - this.height - 30,
         };
 
-        // imagens usadas para desenhar a nave e efeitos do motor
-        this.image = this.getImage(PATH_SPACESHIP_IMAGE);
+        // Array com os caminhos das naves
+        this.sprites = [
+            "src/assets/images/spaceship.png",
+            "src/assets/images/spaceship1.png",
+            "src/assets/images/spaceship2.png"
+        ];
+
+        // Usa o parâmetro shipType para selecionar a nave
+        this.image = this.getImage(this.sprites[shipType] || this.sprites[0]);
         this.engineImage = this.getImage(PATH_ENGINE_IMAGE);
         this.engineSprites = this.getImage(PATH_ENGINE_SPRITES);
 

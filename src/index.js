@@ -16,18 +16,20 @@ const levelElement = scoreUi.querySelector(".level > span");
 const highElement = scoreUi.querySelector(".high > span");
 const buttonPlay = document.querySelector(".button-play");
 const buttonRestart = document.querySelector(".button-restart");
+const buttonMainMenu = document.querySelector(".button-main-menu");
+const shipButtons = document.querySelectorAll('.ship-btn');
 
-gameOverScreen.remove(); // Remove tela de game over do DOM inicialmente
+gameOverScreen.remove();
 
 const canvas = document.querySelector("canvas");
 const ctx = canvas.getContext("2d");
 
-canvas.width = innerWidth; // Ajusta canvas à largura da janela
-canvas.height = innerHeight; // Ajusta canvas à altura da janela
+canvas.width = innerWidth;
+canvas.height = innerHeight;
 
-ctx.imageSmoothingEnabled = false; // Desabilita suavização para pixel art ficar nítida
+ctx.imageSmoothingEnabled = false;
 
-let currentState = GameState.START; // Estado inicial do jogo
+let currentState = GameState.START;
 
 const gameData = {
     score: 0,
@@ -36,37 +38,47 @@ const gameData = {
 };
 
 const showGameData = () => {
-    scoreElement.textContent = gameData.score; // Atualiza score na UI
-    levelElement.textContent = gameData.level; // Atualiza nível na UI
-    highElement.textContent = gameData.high; // Atualiza recorde na UI
+    scoreElement.textContent = gameData.score;
+    levelElement.textContent = gameData.level;
+    highElement.textContent = gameData.high;
 };
 
-const player = new Player(canvas.width, canvas.height); // Cria jogador
+// ====== SELEÇÃO DE NAVE ======
+let selectedShipIndex = 0;
+shipButtons.forEach(btn => {
+    btn.addEventListener('click', () => {
+        shipButtons.forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        selectedShipIndex = parseInt(btn.getAttribute('data-ship'), 10);
+    });
+});
+shipButtons[0].classList.add('selected');
 
-const stars = []; // Fundo de estrelas
-const playerProjectiles = []; // Tiros do jogador
-const invadersProjectiles = []; // Tiros dos inimigos
-const particles = []; // Partículas para explosões
-const obstacles = []; // Obstáculos para proteção
+// ====== PLAYER ======
+let player = new Player(canvas.width, canvas.height, selectedShipIndex);
+
+const stars = [];
+const playerProjectiles = [];
+const invadersProjectiles = [];
+const particles = [];
+const obstacles = [];
 
 const initObstacles = () => {
     const x = canvas.width / 2 - 50;
     const y = canvas.height - 250;
     const offset = canvas.width * 0.15;
     const color = "crimson";
-
-    const obstacle1 = new Obstacle({ x: x - offset, y }, 100, 20, color); // Obstáculo esquerdo
-    const obstacle2 = new Obstacle({ x: x + offset, y }, 100, 20, color); // Obstáculo direito
-
+    const obstacle1 = new Obstacle({ x: x - offset, y }, 100, 20, color);
+    const obstacle2 = new Obstacle({ x: x + offset, y }, 100, 20, color);
     obstacles.push(obstacle1);
     obstacles.push(obstacle2);
 };
 
-initObstacles(); // Inicializa obstáculos
+initObstacles();
 
 const grid = new Grid(
-    Math.round(Math.random() * 9 + 1), // Número aleatório de linhas
-    Math.round(Math.random() * 9 + 1)  // Número aleatório de colunas
+    Math.round(Math.random() * 9 + 1),
+    Math.round(Math.random() * 9 + 1)
 );
 
 const keys = {
@@ -79,70 +91,67 @@ const keys = {
 };
 
 const incrementScore = (value) => {
-    gameData.score += value; // Incrementa score
-
-    if (gameData.score > gameData.high) { // Atualiza recorde se necessário
+    gameData.score += value;
+    if (gameData.score > gameData.high) {
         gameData.high = gameData.score;
     }
 };
 
 const incrementLevel = () => {
-    gameData.level += 1; // Incrementa nível
+    gameData.level += 1;
 };
 
 const generateStars = () => {
     for (let i = 0; i < NUMBER_STARS; i += 1) {
-        stars.push(new Star(canvas.width, canvas.height)); // Cria fundo estrelado
+        stars.push(new Star(canvas.width, canvas.height));
     }
 };
 
 const drawStars = () => {
     stars.forEach((star) => {
-        star.draw(ctx); // Desenha estrela
-        star.update();  // Atualiza posição ou brilho da estrela
+        star.draw(ctx);
+        star.update();
     });
 };
 
 const drawProjectiles = () => {
-    const projectiles = [...playerProjectiles, ...invadersProjectiles]; // Junta todos os tiros
-
+    const projectiles = [...playerProjectiles, ...invadersProjectiles];
     projectiles.forEach((projectile) => {
-        projectile.draw(ctx); // Desenha cada tiro
-        projectile.update();  // Atualiza posição do tiro
+        projectile.draw(ctx);
+        projectile.update();
     });
 };
 
 const drawParticles = () => {
     particles.forEach((particle) => {
-        particle.draw(ctx); // Desenha partícula (explosão)
-        particle.update();  // Atualiza opacidade e movimento da partícula
+        particle.draw(ctx);
+        particle.update();
     });
 };
 
 const drawObstacles = () => {
-    obstacles.forEach((obstacle) => obstacle.draw(ctx)); // Desenha obstáculos
+    obstacles.forEach((obstacle) => obstacle.draw(ctx));
 };
 
 const clearProjectiles = () => {
-    playerProjectiles.forEach((projectile, i) => {
-        if (projectile.position.y <= 0) { // Remove tiros do jogador que saíram da tela
+    for (let i = playerProjectiles.length - 1; i >= 0; i--) {
+        if (playerProjectiles[i].position.y <= 0) {
             playerProjectiles.splice(i, 1);
         }
-    });
-
-    invadersProjectiles.forEach((projectile, i) => {
-        if (projectile.position.y > canvas.height) { // Remove tiros dos inimigos que saíram da tela
+    }
+    for (let i = invadersProjectiles.length - 1; i >= 0; i--) {
+        if (invadersProjectiles[i].position.y > canvas.height) {
             invadersProjectiles.splice(i, 1);
         }
-    });
+    }
 };
 
 const clearParticles = () => {
-    particles.forEach((particle, i) => {
-        if (particle.opacity <= 0) { // Remove partículas invisíveis
+    for (let i = particles.length - 1; i >= 0; i--) {
+        if (particles[i].opacity <= 0) {
             particles.splice(i, 1);
         }
-    });
+    }
 };
 
 const createExplosion = (position, size, color) => {
@@ -153,23 +162,23 @@ const createExplosion = (position, size, color) => {
                 y: position.y,
             },
             {
-                x: (Math.random() - 0.5) * 1.5, // Movimento aleatório da partícula
+                x: (Math.random() - 0.5) * 1.5,
                 y: (Math.random() - 0.5) * 1.5,
             },
             2,
             color
         );
-
-        particles.push(particle); // Adiciona partícula para explosão visual
+        particles.push(particle);
     }
 };
 
 const checkShootInvaders = () => {
-    grid.invaders.forEach((invader, invaderIndex) => {
-        playerProjectiles.some((projectile, projectileIndex) => {
-            if (invader.hit(projectile)) { // Se o tiro do jogador acertou inimigo
+    for(let invaderIndex = grid.invaders.length - 1; invaderIndex >= 0; invaderIndex--) {
+        const invader = grid.invaders[invaderIndex];
+        for(let projectileIndex = playerProjectiles.length - 1; projectileIndex >= 0; projectileIndex--) {
+            const projectile = playerProjectiles[projectileIndex];
+            if (invader.hit(projectile)) {
                 soundEffects.playHitSound();
-
                 createExplosion(
                     {
                         x: invader.position.x + invader.width / 2,
@@ -178,25 +187,21 @@ const checkShootInvaders = () => {
                     10,
                     "#941CFF"
                 );
-
-                incrementScore(10); // Adiciona pontos
-
-                grid.invaders.splice(invaderIndex, 1); // Remove inimigo
-                playerProjectiles.splice(projectileIndex, 1); // Remove tiro
-
-                return true; // Para o loop some() para esse inimigo
+                incrementScore(10);
+                grid.invaders.splice(invaderIndex, 1);
+                playerProjectiles.splice(projectileIndex, 1);
+                break;
             }
-        });
-    });
+        }
+    }
 };
 
 const showGameOverScreen = () => {
-    document.body.append(gameOverScreen); // Adiciona tela de game over
-    gameOverScreen.classList.add("zoom-animation"); // Animação da tela
+    document.body.append(gameOverScreen);
+    gameOverScreen.classList.add("zoom-animation");
 };
 
 const gameOver = () => {
-    // Cria explosões coloridas na posição do jogador
     createExplosion(
         {
             x: player.position.x + player.width / 2,
@@ -205,7 +210,6 @@ const gameOver = () => {
         10,
         "white"
     );
-
     createExplosion(
         {
             x: player.position.x + player.width / 2,
@@ -214,7 +218,6 @@ const gameOver = () => {
         5,
         "#4D9BE6"
     );
-
     createExplosion(
         {
             x: player.position.x + player.width / 2,
@@ -223,207 +226,215 @@ const gameOver = () => {
         5,
         "crimson"
     );
-
-    player.alive = false; // Marca jogador como morto
-    currentState = GameState.GAME_OVER; // Muda estado do jogo para game over
-    showGameOverScreen(); // Mostra tela de game over
+    player.alive = false;
+    currentState = GameState.GAME_OVER;
+    showGameOverScreen();
 };
 
 const checkShootPlayer = () => {
-    invadersProjectiles.some((projectile, index) => {
-        if (player.hit(projectile)) { // Se jogador foi atingido por tiro inimigo
+    for(let i = invadersProjectiles.length - 1; i >= 0; i--) {
+        if (player.hit(invadersProjectiles[i])) {
             soundEffects.playExplosionSound();
-            invadersProjectiles.splice(index, 1); // Remove o tiro
-
-            gameOver(); // Aciona fim do jogo
-            return true;
+            invadersProjectiles.splice(i, 1);
+            gameOver();
+            break;
         }
-    });
+    }
 };
 
 const checkShootObstacles = () => {
     obstacles.forEach((obstacle) => {
-        playerProjectiles.some((projectile, index) => {
-            if (obstacle.hit(projectile)) { // Se tiro do jogador atingiu obstáculo
-                playerProjectiles.splice(index, 1); // Remove tiro
-                return true;
+        for (let i = playerProjectiles.length - 1; i >= 0; i--) {
+            if (obstacle.hit(playerProjectiles[i])) {
+                playerProjectiles.splice(i, 1);
+                break;
             }
-        });
-
-        invadersProjectiles.some((projectile, index) => {
-            if (obstacle.hit(projectile)) { // Se tiro inimigo atingiu obstáculo
-                invadersProjectiles.splice(index, 1); // Remove tiro
-                return true;
+        }
+        for (let i = invadersProjectiles.length - 1; i >= 0; i--) {
+            if (obstacle.hit(invadersProjectiles[i])) {
+                invadersProjectiles.splice(i, 1);
+                break;
             }
-        });
+        }
     });
 };
 
 const checkInvadersCollidedObstacles = () => {
-    obstacles.forEach((obstacle, i) => {
-        grid.invaders.some((invader) => {
-            if (invader.collided(obstacle)) { // Se inimigo colidiu com obstáculo
-                obstacles.splice(i, 1); // Remove obstáculo
-                return true;
+    for(let i = obstacles.length - 1; i >= 0; i--) {
+        const obstacle = obstacles[i];
+        for(const invader of grid.invaders) {
+            if (invader.collided(obstacle)) {
+                obstacles.splice(i, 1);
+                break;
             }
-        });
-    });
+        }
+    }
 };
 
 const checkPlayerCollidedInvaders = () => {
-    grid.invaders.some((invader) => {
+    for(const invader of grid.invaders) {
         if (
             invader.position.x >= player.position.x &&
             invader.position.x <= player.position.x + player.width &&
             invader.position.y >= player.position.y
         ) {
-            gameOver(); // Se inimigo avançou até o jogador, fim do jogo
-            return true;
+            gameOver();
+            break;
         }
-    });
+    }
 };
 
 const spawnGrid = () => {
-    if (grid.invaders.length === 0) { // Se todos os inimigos foram eliminados
+    if (grid.invaders.length === 0) {
         soundEffects.playNextLevelSound();
-
-        grid.rows = Math.round(Math.random() * 9 + 1); // Novas linhas aleatórias
-        grid.cols = Math.round(Math.random() * 9 + 1); // Novas colunas aleatórias
-        grid.restart(); // Reinicia grid de inimigos
-
-        incrementLevel(); // Avança nível
-
+        grid.rows = Math.round(Math.random() * 9 + 1);
+        grid.cols = Math.round(Math.random() * 9 + 1);
+        grid.restart();
+        incrementLevel();
         if (obstacles.length === 0) {
-            initObstacles(); // Reinicia obstáculos caso tenham acabado
+            initObstacles();
         }
     }
 };
 
 const gameLoop = () => {
-    ctx.clearRect(0, 0, canvas.width, canvas.height); // Limpa tela
-
-    drawStars(); // Fundo de estrelas
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    drawStars();
 
     if (currentState === GameState.PLAYING) {
-        showGameData(); // Atualiza UI de score e nível
-        spawnGrid(); // Checa se deve gerar nova leva de inimigos
-
-        drawProjectiles(); // Desenha tiros
-        drawParticles(); // Desenha partículas de explosão
-        drawObstacles(); // Desenha obstáculos
-
-        clearProjectiles(); // Remove tiros fora da tela
-        clearParticles(); // Remove partículas invisíveis
-
-        checkShootInvaders(); // Verifica se tiros acertaram inimigos
-        checkShootPlayer(); // Verifica se inimigos acertaram jogador
-        checkShootObstacles(); // Verifica tiros atingindo obstáculos
-        checkInvadersCollidedObstacles(); // Verifica colisão inimigos e obstáculos
-        checkPlayerCollidedInvaders(); // Verifica colisão inimigos e jogador
-
-        grid.draw(ctx); // Desenha inimigos
-        grid.update(player.alive); // Atualiza posição inimigos
+        showGameData();
+        spawnGrid();
+        drawProjectiles();
+        drawParticles();
+        drawObstacles();
+        clearProjectiles();
+        clearParticles();
+        checkShootInvaders();
+        checkShootPlayer();
+        checkShootObstacles();
+        checkInvadersCollidedObstacles();
+        checkPlayerCollidedInvaders();
+        grid.draw(ctx);
+        grid.update(player.alive);
 
         ctx.save();
-
-        // Centraliza contexto no jogador para aplicar rotação
         ctx.translate(
             player.position.x + player.width / 2,
             player.position.y + player.height / 2
         );
 
-        if (keys.shoot.pressed && keys.shoot.released) { // Se tecla de tiro foi pressionada e está liberada
+        if (keys.shoot.pressed && keys.shoot.released) {
             soundEffects.playShootSound();
-            player.shoot(playerProjectiles); // Cria tiro
-            keys.shoot.released = false; // Impede tiro contínuo
+            player.shoot(playerProjectiles);
+            keys.shoot.released = false;
         }
 
         if (keys.left && player.position.x >= 0) {
-            player.moveLeft(); // Move jogador para esquerda
-            ctx.rotate(-0.15); // Rotaciona ligeiramente o sprite para esquerda
+            player.moveLeft();
+            ctx.rotate(-0.15);
         }
 
         if (keys.right && player.position.x <= canvas.width - player.width) {
-            player.moveRight(); // Move jogador para direita
-            ctx.rotate(0.15); // Rotaciona ligeiramente o sprite para direita
+            player.moveRight();
+            ctx.rotate(0.15);
         }
 
-        // Reverte translação para desenhar jogador no local correto
         ctx.translate(
             -player.position.x - player.width / 2,
             -player.position.y - player.height / 2
         );
 
-        player.draw(ctx); // Desenha jogador
+        player.draw(ctx);
         ctx.restore();
     }
 
     if (currentState === GameState.GAME_OVER) {
-        checkShootObstacles(); // Ainda checa tiros e obstáculos
-
-        drawProjectiles(); // Desenha tiros
-        drawParticles(); // Desenha partículas
-        drawObstacles(); // Desenha obstáculos
-
-        clearProjectiles(); // Limpa tiros fora da tela
-        clearParticles(); // Limpa partículas invisíveis
-
-        grid.draw(ctx); // Desenha inimigos
-        grid.update(player.alive); // Atualiza inimigos (mesmo com jogador morto)
+        checkShootObstacles();
+        drawProjectiles();
+        drawParticles();
+        drawObstacles();
+        clearProjectiles();
+        clearParticles();
+        grid.draw(ctx);
+        grid.update(player.alive);
     }
 
-    requestAnimationFrame(gameLoop); // Loop recursivo
+    requestAnimationFrame(gameLoop);
 };
 
 const restartGame = () => {
     currentState = GameState.PLAYING;
-
+    player = new Player(canvas.width, canvas.height, selectedShipIndex);
     player.alive = true;
+    grid.invaders.length = 0;
+    grid.invadersVelocity = 1;
+    invadersProjectiles.length = 0;
+    playerProjectiles.length = 0;
+    gameData.score = 0;
+    gameData.level = 1;
+    obstacles.length = 0;
+    initObstacles();
+};
 
-    grid.invaders.length = 0; // Limpa inimigos
-    grid.invadersVelocity = 1; // Reseta velocidade dos inimigos
-
-    invadersProjectiles.length = 0; // Limpa tiros inimigos
-    gameData.score = 0; // Reseta pontuação
-    gameData.level = 0; // Reseta nível
-
-    gameOverScreen.remove(); // Remove tela de game over
+const goToMainMenu = () => {
+    gameOverScreen.remove();
+    scoreUi.style.display = "none";
+    currentState = GameState.START;
+    if (!document.body.contains(startScreen)) {
+        document.body.append(startScreen);
+    }
+    player = new Player(canvas.width, canvas.height, selectedShipIndex);
+    player.alive = true;
+    grid.invaders.length = 0;
+    grid.invadersVelocity = 1;
+    invadersProjectiles.length = 0;
+    playerProjectiles.length = 0;
+    gameData.score = 0;
+    gameData.level = 1;
+    obstacles.length = 0;
+    initObstacles();
 };
 
 addEventListener("keydown", (event) => {
     const key = event.key.toLowerCase();
-
-    if (key === "a") keys.left = true; // Tecla esquerda pressionada
-    if (key === "d") keys.right = true; // Tecla direita pressionada
-    if (key === " ") keys.shoot.pressed = true; // Tecla tiro pressionada
+    if (key === "a") keys.left = true;
+    if (key === "d") keys.right = true;
+    if (key === " ") keys.shoot.pressed = true;
 });
 
 addEventListener("keyup", (event) => {
     const key = event.key.toLowerCase();
-
-    if (key === "a") keys.left = false; // Tecla esquerda liberada
-    if (key === "d") keys.right = false; // Tecla direita liberada
+    if (key === "a") keys.left = false;
+    if (key === "d") keys.right = false;
     if (key === " ") {
-        keys.shoot.pressed = false; // Tecla tiro liberada 
-        keys.shoot.released = true; // Permite próximo tiro
+        keys.shoot.pressed = false;
+        keys.shoot.released = true;
     }
 });
 
 buttonPlay.addEventListener("click", () => {
-    startScreen.remove(); // Remove tela inicial
-    scoreUi.style.display = "block"; // Exibe UI de score
-    currentState = GameState.PLAYING; // Inicia o jogo
+    startScreen.remove();
+    scoreUi.style.display = "block";
+    currentState = GameState.PLAYING;
+    player = new Player(canvas.width, canvas.height, selectedShipIndex);
 
-    setInterval(() => {
+    const shootLoop = () => {
         const invader = grid.getRandomInvader();
-
         if (invader) {
-            invader.shoot(invadersProjectiles); // Inimigos disparam periodicamente
+            invader.shoot(invadersProjectiles);
         }
-    }, 1000);
+
+        let shootInterval = 1000 - gameData.level * 50;
+        if (shootInterval < 300) shootInterval = 300;
+
+        setTimeout(shootLoop, shootInterval);
+    };
+
+    shootLoop();
 });
 
 buttonRestart.addEventListener("click", restartGame);
+buttonMainMenu.addEventListener("click", goToMainMenu);
 
-generateStars(); // Cria estrelas para fundo
-gameLoop(); // Inicia loop principal
+generateStars();
+gameLoop();
