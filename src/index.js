@@ -395,7 +395,7 @@ addEventListener("keydown", (event) => {
 
     if (key === "a") keys.left = true; // Tecla esquerda pressionada
     if (key === "d") keys.right = true; // Tecla direita pressionada
-    if (key === "enter") keys.shoot.pressed = true; // Tecla tiro pressionada
+    if (key === " ") keys.shoot.pressed = true; // Tecla tiro pressionada
 });
 
 addEventListener("keyup", (event) => {
@@ -404,7 +404,7 @@ addEventListener("keyup", (event) => {
     if (key === "a") keys.left = false; // Tecla esquerda liberada
     if (key === "d") keys.right = false; // Tecla direita liberada
     if (key === "enter") {
-        keys.shoot.pressed = false; // Tecla tiro liberada
+        keys.shoot.pressed = false; // Tecla tiro liberada 
         keys.shoot.released = true; // Permite próximo tiro
     }
 });
