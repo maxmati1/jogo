@@ -403,7 +403,7 @@ addEventListener("keyup", (event) => {
 
     if (key === "a") keys.left = false; // Tecla esquerda liberada
     if (key === "d") keys.right = false; // Tecla direita liberada
-    if (key === "enter") {
+    if (key === " ") {
         keys.shoot.pressed = false; // Tecla tiro liberada 
         keys.shoot.released = true; // Permite próximo tiro
     }
