@@ -1,3 +1,4 @@
+// Importa os módulos necessários
 import Grid from "./classes/Grid.js";
 import Obstacle from "./classes/Obstacle.js";
 import Particle from "./classes/Particle.js";
@@ -6,8 +7,10 @@ import SoundEffects from "./classes/SoundEffects.js";
 import Star from "./classes/Star.js";
 import { GameState, NUMBER_STARS } from "./utils/constants.js";
 
+// Cria instância dos efeitos sonoros
 const soundEffects = new SoundEffects();
 
+// Seleciona elementos da interface
 const startScreen = document.querySelector(".start-screen");
 const gameOverScreen = document.querySelector(".game-over");
 const scoreUi = document.querySelector(".score-ui");
@@ -19,8 +22,10 @@ const buttonRestart = document.querySelector(".button-restart");
 const buttonMainMenu = document.querySelector(".button-main-menu");
 const shipButtons = document.querySelectorAll('.ship-btn');
 
+// Remove a tela de game over do DOM inicialmente
 gameOverScreen.remove();
 
+// Inicializa o canvas e contexto
 const canvas = document.querySelector("canvas");
 const ctx = canvas.getContext("2d");
 
@@ -29,14 +34,17 @@ canvas.height = innerHeight;
 
 ctx.imageSmoothingEnabled = false;
 
+// Define o estado atual do jogo
 let currentState = GameState.START;
 
+// Dados do jogo
 const gameData = {
     score: 0,
     level: 1,
     high: 0,
 };
 
+// Atualiza os dados da interface
 const showGameData = () => {
     scoreElement.textContent = gameData.score;
     levelElement.textContent = gameData.level;
@@ -57,12 +65,14 @@ shipButtons[0].classList.add('selected');
 // ====== PLAYER ======
 let player = new Player(canvas.width, canvas.height, selectedShipIndex);
 
+// Arrays para entidades do jogo
 const stars = [];
 const playerProjectiles = [];
 const invadersProjectiles = [];
 const particles = [];
 const obstacles = [];
 
+// Cria os obstáculos iniciais
 const initObstacles = () => {
     const x = canvas.width / 2 - 50;
     const y = canvas.height - 250;
@@ -76,11 +86,13 @@ const initObstacles = () => {
 
 initObstacles();
 
+// Gera uma nova grade de inimigos
 const grid = new Grid(
     Math.round(Math.random() * 9 + 1),
     Math.round(Math.random() * 9 + 1)
 );
 
+// Teclas controladas
 const keys = {
     left: false,
     right: false,
@@ -90,6 +102,7 @@ const keys = {
     },
 };
 
+// Aumenta a pontuação
 const incrementScore = (value) => {
     gameData.score += value;
     if (gameData.score > gameData.high) {
@@ -97,16 +110,19 @@ const incrementScore = (value) => {
     }
 };
 
+// Aumenta o nível
 const incrementLevel = () => {
     gameData.level += 1;
 };
 
+// Gera as estrelas de fundo
 const generateStars = () => {
     for (let i = 0; i < NUMBER_STARS; i += 1) {
         stars.push(new Star(canvas.width, canvas.height));
     }
 };
 
+// Desenha as estrelas
 const drawStars = () => {
     stars.forEach((star) => {
         star.draw(ctx);
@@ -114,6 +130,7 @@ const drawStars = () => {
     });
 };
 
+// Desenha os projeteis
 const drawProjectiles = () => {
     const projectiles = [...playerProjectiles, ...invadersProjectiles];
     projectiles.forEach((projectile) => {
@@ -122,6 +139,7 @@ const drawProjectiles = () => {
     });
 };
 
+// Desenha partículas
 const drawParticles = () => {
     particles.forEach((particle) => {
         particle.draw(ctx);
@@ -129,10 +147,12 @@ const drawParticles = () => {
     });
 };
 
+// Desenha obstáculos
 const drawObstacles = () => {
     obstacles.forEach((obstacle) => obstacle.draw(ctx));
 };
 
+// Limpa projeteis fora da tela
 const clearProjectiles = () => {
     for (let i = playerProjectiles.length - 1; i >= 0; i--) {
         if (playerProjectiles[i].position.y <= 0) {
@@ -146,6 +166,7 @@ const clearProjectiles = () => {
     }
 };
 
+// Limpa partículas que desapareceram
 const clearParticles = () => {
     for (let i = particles.length - 1; i >= 0; i--) {
         if (particles[i].opacity <= 0) {
@@ -154,6 +175,7 @@ const clearParticles = () => {
     }
 };
 
+// Cria uma explosão com partículas
 const createExplosion = (position, size, color) => {
     for (let i = 0; i < size; i += 1) {
         const particle = new Particle(
@@ -172,6 +194,7 @@ const createExplosion = (position, size, color) => {
     }
 };
 
+// Verifica se projéteis atingiram invasores
 const checkShootInvaders = () => {
     for(let invaderIndex = grid.invaders.length - 1; invaderIndex >= 0; invaderIndex--) {
         const invader = grid.invaders[invaderIndex];
@@ -196,11 +219,13 @@ const checkShootInvaders = () => {
     }
 };
 
+// Mostra tela de fim de jogo
 const showGameOverScreen = () => {
     document.body.append(gameOverScreen);
     gameOverScreen.classList.add("zoom-animation");
 };
 
+// Executa fim de jogo
 const gameOver = () => {
     createExplosion(
         {
@@ -231,6 +256,7 @@ const gameOver = () => {
     showGameOverScreen();
 };
 
+// Verifica se jogador foi atingido
 const checkShootPlayer = () => {
     for(let i = invadersProjectiles.length - 1; i >= 0; i--) {
         if (player.hit(invadersProjectiles[i])) {
@@ -242,6 +268,7 @@ const checkShootPlayer = () => {
     }
 };
 
+// Verifica colisão de projéteis com obstáculos
 const checkShootObstacles = () => {
     obstacles.forEach((obstacle) => {
         for (let i = playerProjectiles.length - 1; i >= 0; i--) {
@@ -259,6 +286,7 @@ const checkShootObstacles = () => {
     });
 };
 
+// Verifica se invasores colidiram com obstáculos
 const checkInvadersCollidedObstacles = () => {
     for(let i = obstacles.length - 1; i >= 0; i--) {
         const obstacle = obstacles[i];
@@ -271,6 +299,7 @@ const checkInvadersCollidedObstacles = () => {
     }
 };
 
+// Verifica se invasores colidiram com jogador
 const checkPlayerCollidedInvaders = () => {
     for(const invader of grid.invaders) {
         if (
@@ -284,6 +313,7 @@ const checkPlayerCollidedInvaders = () => {
     }
 };
 
+// Reinicia a grade se todos inimigos forem eliminados
 const spawnGrid = () => {
     if (grid.invaders.length === 0) {
         soundEffects.playNextLevelSound();
@@ -297,6 +327,7 @@ const spawnGrid = () => {
     }
 };
 
+// Loop principal do jogo
 const gameLoop = () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawStars();
@@ -362,6 +393,7 @@ const gameLoop = () => {
     requestAnimationFrame(gameLoop);
 };
 
+// Reinicia o jogo
 const restartGame = () => {
     currentState = GameState.PLAYING;
     player = new Player(canvas.width, canvas.height, selectedShipIndex);
@@ -376,6 +408,7 @@ const restartGame = () => {
     initObstacles();
 };
 
+// Volta para o menu principal
 const goToMainMenu = () => {
     gameOverScreen.remove();
     scoreUi.style.display = "none";
@@ -395,6 +428,7 @@ const goToMainMenu = () => {
     initObstacles();
 };
 
+// Controles de teclado
 addEventListener("keydown", (event) => {
     const key = event.key.toLowerCase();
     if (key === "a") keys.left = true;
@@ -412,6 +446,7 @@ addEventListener("keyup", (event) => {
     }
 });
 
+// Inicia o jogo
 buttonPlay.addEventListener("click", () => {
     startScreen.remove();
     scoreUi.style.display = "block";
@@ -433,8 +468,10 @@ buttonPlay.addEventListener("click", () => {
     shootLoop();
 });
 
+// Eventos dos botões de fim de jogo
 buttonRestart.addEventListener("click", restartGame);
 buttonMainMenu.addEventListener("click", goToMainMenu);
 
+// Inicializa o jogo
 generateStars();
 gameLoop();
