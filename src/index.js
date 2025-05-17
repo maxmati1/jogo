@@ -1,4 +1,3 @@
-// Importa os módulos necessários
 import Grid from "./classes/Grid.js";
 import Obstacle from "./classes/Obstacle.js";
 import Particle from "./classes/Particle.js";
@@ -6,11 +5,10 @@ import Player from "./classes/Player.js";
 import SoundEffects from "./classes/SoundEffects.js";
 import Star from "./classes/Star.js";
 import { GameState, NUMBER_STARS } from "./utils/constants.js";
+import Boss from "./classes/Boss.js";
 
-// Cria instância dos efeitos sonoros
+// Instâncias e elementos de interface
 const soundEffects = new SoundEffects();
-
-// Seleciona elementos da interface
 const startScreen = document.querySelector(".start-screen");
 const gameOverScreen = document.querySelector(".game-over");
 const scoreUi = document.querySelector(".score-ui");
@@ -22,29 +20,26 @@ const buttonRestart = document.querySelector(".button-restart");
 const buttonMainMenu = document.querySelector(".button-main-menu");
 const shipButtons = document.querySelectorAll('.ship-btn');
 
-// Remove a tela de game over do DOM inicialmente
+let boss = null;
+let bossActive = false;
+
+// Remove game over do DOM inicialmente
 gameOverScreen.remove();
 
-// Inicializa o canvas e contexto
 const canvas = document.querySelector("canvas");
 const ctx = canvas.getContext("2d");
-
 canvas.width = innerWidth;
 canvas.height = innerHeight;
-
 ctx.imageSmoothingEnabled = false;
 
-// Define o estado atual do jogo
 let currentState = GameState.START;
 
-// Dados do jogo
 const gameData = {
     score: 0,
     level: 1,
     high: 0,
 };
 
-// Atualiza os dados da interface
 const showGameData = () => {
     scoreElement.textContent = gameData.score;
     levelElement.textContent = gameData.level;
@@ -72,25 +67,21 @@ const invadersProjectiles = [];
 const particles = [];
 const obstacles = [];
 
-// Cria os obstáculos iniciais
+// Cria obstáculos iniciais
 const initObstacles = () => {
     const x = canvas.width / 2 - 50;
     const y = canvas.height - 250;
     const offset = canvas.width * 0.15;
     const color = "crimson";
-    const obstacle1 = new Obstacle({ x: x - offset, y }, 100, 20, color);
-    const obstacle2 = new Obstacle({ x: x + offset, y }, 100, 20, color);
-    obstacles.push(obstacle1);
-    obstacles.push(obstacle2);
+    obstacles.length = 0;
+    obstacles.push(new Obstacle({ x: x - offset, y }, 100, 20, color));
+    obstacles.push(new Obstacle({ x: x + offset, y }, 100, 20, color));
 };
 
 initObstacles();
 
 // Gera uma nova grade de inimigos
-const grid = new Grid(
-    Math.round(Math.random() * 9 + 1),
-    Math.round(Math.random() * 9 + 1)
-);
+const grid = new Grid(2, 2);
 
 // Teclas controladas
 const keys = {
@@ -102,7 +93,6 @@ const keys = {
     },
 };
 
-// Aumenta a pontuação
 const incrementScore = (value) => {
     gameData.score += value;
     if (gameData.score > gameData.high) {
@@ -110,19 +100,16 @@ const incrementScore = (value) => {
     }
 };
 
-// Aumenta o nível
 const incrementLevel = () => {
     gameData.level += 1;
 };
 
-// Gera as estrelas de fundo
 const generateStars = () => {
     for (let i = 0; i < NUMBER_STARS; i += 1) {
         stars.push(new Star(canvas.width, canvas.height));
     }
 };
 
-// Desenha as estrelas
 const drawStars = () => {
     stars.forEach((star) => {
         star.draw(ctx);
@@ -130,7 +117,6 @@ const drawStars = () => {
     });
 };
 
-// Desenha os projeteis
 const drawProjectiles = () => {
     const projectiles = [...playerProjectiles, ...invadersProjectiles];
     projectiles.forEach((projectile) => {
@@ -139,7 +125,6 @@ const drawProjectiles = () => {
     });
 };
 
-// Desenha partículas
 const drawParticles = () => {
     particles.forEach((particle) => {
         particle.draw(ctx);
@@ -147,12 +132,10 @@ const drawParticles = () => {
     });
 };
 
-// Desenha obstáculos
 const drawObstacles = () => {
     obstacles.forEach((obstacle) => obstacle.draw(ctx));
 };
 
-// Limpa projeteis fora da tela
 const clearProjectiles = () => {
     for (let i = playerProjectiles.length - 1; i >= 0; i--) {
         if (playerProjectiles[i].position.y <= 0) {
@@ -166,7 +149,6 @@ const clearProjectiles = () => {
     }
 };
 
-// Limpa partículas que desapareceram
 const clearParticles = () => {
     for (let i = particles.length - 1; i >= 0; i--) {
         if (particles[i].opacity <= 0) {
@@ -175,18 +157,11 @@ const clearParticles = () => {
     }
 };
 
-// Cria uma explosão com partículas
 const createExplosion = (position, size, color) => {
     for (let i = 0; i < size; i += 1) {
         const particle = new Particle(
-            {
-                x: position.x,
-                y: position.y,
-            },
-            {
-                x: (Math.random() - 0.5) * 1.5,
-                y: (Math.random() - 0.5) * 1.5,
-            },
+            { x: position.x, y: position.y },
+            { x: (Math.random() - 0.5) * 1.5, y: (Math.random() - 0.5) * 1.5 },
             2,
             color
         );
@@ -194,7 +169,6 @@ const createExplosion = (position, size, color) => {
     }
 };
 
-// Verifica se projéteis atingiram invasores
 const checkShootInvaders = () => {
     for(let invaderIndex = grid.invaders.length - 1; invaderIndex >= 0; invaderIndex--) {
         const invader = grid.invaders[invaderIndex];
@@ -219,44 +193,38 @@ const checkShootInvaders = () => {
     }
 };
 
-// Mostra tela de fim de jogo
 const showGameOverScreen = () => {
     document.body.append(gameOverScreen);
     gameOverScreen.classList.add("zoom-animation");
 };
 
-// Executa fim de jogo
 const gameOver = () => {
     createExplosion(
         {
             x: player.position.x + player.width / 2,
             y: player.position.y + player.height / 2,
         },
-        10,
-        "white"
+        10, "white"
     );
     createExplosion(
         {
             x: player.position.x + player.width / 2,
             y: player.position.y + player.height / 2,
         },
-        5,
-        "#4D9BE6"
+        5, "#4D9BE6"
     );
     createExplosion(
         {
             x: player.position.x + player.width / 2,
             y: player.position.y + player.height / 2,
         },
-        5,
-        "crimson"
+        5, "crimson"
     );
     player.alive = false;
     currentState = GameState.GAME_OVER;
     showGameOverScreen();
 };
 
-// Verifica se jogador foi atingido
 const checkShootPlayer = () => {
     for(let i = invadersProjectiles.length - 1; i >= 0; i--) {
         if (player.hit(invadersProjectiles[i])) {
@@ -268,7 +236,6 @@ const checkShootPlayer = () => {
     }
 };
 
-// Verifica colisão de projéteis com obstáculos
 const checkShootObstacles = () => {
     obstacles.forEach((obstacle) => {
         for (let i = playerProjectiles.length - 1; i >= 0; i--) {
@@ -286,7 +253,6 @@ const checkShootObstacles = () => {
     });
 };
 
-// Verifica se invasores colidiram com obstáculos
 const checkInvadersCollidedObstacles = () => {
     for(let i = obstacles.length - 1; i >= 0; i--) {
         const obstacle = obstacles[i];
@@ -299,7 +265,6 @@ const checkInvadersCollidedObstacles = () => {
     }
 };
 
-// Verifica se invasores colidiram com jogador
 const checkPlayerCollidedInvaders = () => {
     for(const invader of grid.invaders) {
         if (
@@ -313,88 +278,156 @@ const checkPlayerCollidedInvaders = () => {
     }
 };
 
-// Reinicia a grade se todos inimigos forem eliminados
+// ---- SPAWN GRID CORRIGIDO ----
 const spawnGrid = () => {
+    // Level 10: boss
+    if (gameData.level === 10 && !bossActive) {
+        boss = new Boss(canvas.width, canvas.height);
+        bossActive = true;
+        return;
+    }
+    // Se boss está ativo, não cria grid
+    if (bossActive) return;
+
+    // Se todos os inimigos morreram, cria novo grid e sobe level
     if (grid.invaders.length === 0) {
         soundEffects.playNextLevelSound();
-        grid.rows = Math.round(Math.random() * 9 + 1);
-        grid.cols = Math.round(Math.random() * 9 + 1);
+
+        const minGrid = 2;
+        const maxGrid = 8;
+        let gridSize = Math.min(minGrid + Math.floor((gameData.level - 1) / 2), maxGrid);
+
+        grid.rows = gridSize;
+        grid.cols = gridSize;
+
         grid.restart();
-        incrementLevel();
+        incrementLevel(); // O level só sobe aqui!
         if (obstacles.length === 0) {
             initObstacles();
         }
     }
 };
 
-// Loop principal do jogo
 const gameLoop = () => {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawStars();
 
-    if (currentState === GameState.PLAYING) {
+    // TELA INICIAL
+    if (currentState === GameState.START) {
+        requestAnimationFrame(gameLoop);
+        return;
+    }
+
+    // GAME OVER
+    if (currentState === GameState.GAME_OVER) {
         showGameData();
-        spawnGrid();
         drawProjectiles();
         drawParticles();
         drawObstacles();
         clearProjectiles();
         clearParticles();
-        checkShootInvaders();
-        checkShootPlayer();
-        checkShootObstacles();
-        checkInvadersCollidedObstacles();
-        checkPlayerCollidedInvaders();
         grid.draw(ctx);
         grid.update(player.alive);
 
+        // Player
         ctx.save();
         ctx.translate(
             player.position.x + player.width / 2,
             player.position.y + player.height / 2
         );
-
-        if (keys.shoot.pressed && keys.shoot.released) {
-            soundEffects.playShootSound();
-            player.shoot(playerProjectiles);
-            keys.shoot.released = false;
-        }
-
-        if (keys.left && player.position.x >= 0) {
-            player.moveLeft();
-            ctx.rotate(-0.15);
-        }
-
-        if (keys.right && player.position.x <= canvas.width - player.width) {
-            player.moveRight();
-            ctx.rotate(0.15);
-        }
-
-        ctx.translate(
-            -player.position.x - player.width / 2,
-            -player.position.y - player.height / 2
-        );
-
         player.draw(ctx);
         ctx.restore();
+
+        requestAnimationFrame(gameLoop);
+        return;
     }
 
-    if (currentState === GameState.GAME_OVER) {
-        checkShootObstacles();
-        drawProjectiles();
-        drawParticles();
-        drawObstacles();
-        clearProjectiles();
-        clearParticles();
+    // DURANTE O JOGO
+    showGameData();
+    drawProjectiles();
+    drawParticles();
+    drawObstacles();
+    clearProjectiles();
+    clearParticles();
+    checkShootPlayer();
+    checkShootObstacles();
+
+    // --- BOSS ---
+    if (bossActive && boss && boss.alive) {
+        boss.update();
+        boss.draw(ctx);
+
+        // Colisão dos tiros do player com o boss
+        for (let i = playerProjectiles.length - 1; i >= 0; i--) {
+            if (boss.hit(playerProjectiles[i])) {
+                boss.takeDamage();
+                playerProjectiles.splice(i, 1);
+            }
+        }
+
+        // Checa vitória do boss e gera grid imediatamente se morreu
+        if (!boss.alive) {
+            bossActive = false;
+            boss = null;
+
+            // Cria grid do próximo nível
+            soundEffects.playNextLevelSound();
+            const minGrid = 2;
+            const maxGrid = 8;
+            let gridSize = Math.min(minGrid + Math.floor((gameData.level - 1) / 2), maxGrid);
+            grid.rows = gridSize;
+            grid.cols = gridSize;
+            grid.restart();
+            incrementLevel();
+            if (obstacles.length === 0) {
+                initObstacles();
+            }
+        }
+        // NÃO desenha nem atualiza o grid enquanto o boss está ativo
+    } else {
+        // --- GRID NORMAL (quando NÃO for boss) ---
+        spawnGrid();
+        checkShootInvaders();
+        checkInvadersCollidedObstacles();
+        checkPlayerCollidedInvaders();
         grid.draw(ctx);
         grid.update(player.alive);
     }
 
+    // --- PLAYER SEMPRE APARECE (exceto na tela inicial) ---
+    ctx.save();
+    ctx.translate(
+        player.position.x + player.width / 2,
+        player.position.y + player.height / 2
+    );
+
+    if (keys.shoot.pressed && keys.shoot.released) {
+        soundEffects.playShootSound();
+        player.shoot(playerProjectiles);
+        keys.shoot.released = false;
+    }
+
+    if (keys.left && player.position.x >= 0) {
+        player.moveLeft();
+        ctx.rotate(-0.15);
+    }
+    if (keys.right && player.position.x <= canvas.width - player.width) {
+        player.moveRight();
+        ctx.rotate(0.15);
+    }
+
+    ctx.translate(
+        -player.position.x - player.width / 2,
+        -player.position.y - player.height / 2
+    );
+    player.draw(ctx);
+    ctx.restore();
+
     requestAnimationFrame(gameLoop);
 };
 
-// Reinicia o jogo
 const restartGame = () => {
+    gameOverScreen.remove();
     currentState = GameState.PLAYING;
     player = new Player(canvas.width, canvas.height, selectedShipIndex);
     player.alive = true;
@@ -405,10 +438,11 @@ const restartGame = () => {
     gameData.score = 0;
     gameData.level = 1;
     obstacles.length = 0;
+    boss = null;
+    bossActive = false;
     initObstacles();
 };
 
-// Volta para o menu principal
 const goToMainMenu = () => {
     gameOverScreen.remove();
     scoreUi.style.display = "none";
@@ -425,6 +459,8 @@ const goToMainMenu = () => {
     gameData.score = 0;
     gameData.level = 1;
     obstacles.length = 0;
+    boss = null;
+    bossActive = false;
     initObstacles();
 };
 
@@ -454,24 +490,22 @@ buttonPlay.addEventListener("click", () => {
     player = new Player(canvas.width, canvas.height, selectedShipIndex);
 
     const shootLoop = () => {
-        const invader = grid.getRandomInvader();
-        if (invader) {
-            invader.shoot(invadersProjectiles);
+        if (!bossActive) { // <- só deixa invaders atirarem se não for o boss!
+            const invader = grid.getRandomInvader();
+            if (invader) {
+                invader.shoot(invadersProjectiles);
+            }
         }
-
         let shootInterval = 1000 - gameData.level * 50;
         if (shootInterval < 300) shootInterval = 300;
-
         setTimeout(shootLoop, shootInterval);
     };
 
     shootLoop();
 });
 
-// Eventos dos botões de fim de jogo
 buttonRestart.addEventListener("click", restartGame);
 buttonMainMenu.addEventListener("click", goToMainMenu);
 
-// Inicializa o jogo
 generateStars();
 gameLoop();
