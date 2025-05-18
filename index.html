@@ -5,22 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="src/style.css">
     <title>Space Invaders</title>
-    <style>
-      .ship-select-title {
-        margin-bottom: 6px;
-        font-weight: bold;
-        font-size: 0.95em;
-        text-align: center;
-        color: #dedede;
-        letter-spacing: 0.5px;
-      }
-      .ship-selection {
-        display: flex;
-        justify-content: center;
-        gap: 18px;
-        margin-bottom: 10px;
-      }
-    </style>
 </head>
 <body>
     <section class="score-ui">
@@ -31,30 +15,43 @@
         </div>
     </section>
 
-<section class="start-screen screen">
-    <div style="display: flex; flex-direction: column; align-items: center;">
-      <h1>Space Invaders</h1>
+    <section class="start-screen screen">
+        <div style="display: flex; flex-direction: column; align-items: center;">
+            <h1>Space Invaders</h1>
 
-      <!-- Título menor e centralizado -->
-      <div class="ship-select-title">
-        Selecione sua nave
-      </div>
-      <div class="ship-selection">
-        <button class="ship-btn selected" data-ship="0">
-          <img src="src/assets/images/spaceship.png" alt="Nave 0" width="48" height="48">
-        </button>
-        <button class="ship-btn" data-ship="1">
-          <img src="src/assets/images/spaceship1.png" alt="Nave 1" width="48" height="48">
-        </button>
-        <button class="ship-btn" data-ship="2">
-          <img src="src/assets/images/spaceship2.png" alt="Nave 2" width="48" height="48">
-        </button>
-      </div>
-      <button class="button-play">Play</button>
-    </div>
-    <span>manual do dev version</span>
-  </section>
-  
+            <!-- Título menor e centralizado -->
+            <div class="ship-select-title">
+                Selecione sua nave
+            </div>
+            
+            <!-- Primeira fileira de naves -->
+            <div class="ship-selection">
+                <button class="ship-btn selected" data-ship="0">
+                    <img src="src/assets/images/spaceship.png" alt="Nave 0" width="48" height="48">
+                </button>
+                <button class="ship-btn" data-ship="1">
+                    <img src="src/assets/images/spaceship1.png" alt="Nave 1" width="48" height="48">
+                </button>
+                <button class="ship-btn" data-ship="2">
+                    <img src="src/assets/images/spaceship2.png" alt="Nave 2" width="48" height="48">
+                </button>
+            </div>
+            <!-- Segunda fileira de naves -->
+            <div class="ship-selection ship-selection-bottom">
+                <button class="ship-btn" data-ship="3">
+                    <img src="src/assets/images/spaceship3.png" alt="Nave 3" width="48" height="48">
+                </button>
+                <button class="ship-btn" data-ship="4">
+                    <img src="src/assets/images/spaceship4.png" alt="Nave 4" width="48" height="48">
+                </button>
+                <button class="ship-btn" data-ship="5">
+                    <img src="src/assets/images/spaceship5.png" alt="Nave 5" width="48" height="48">
+                </button>
+            </div>
+            <button class="button-play">Play</button>
+        </div>
+        <span>izepe version</span>
+    </section>
 
     <section class="game-over screen">
         <div>
@@ -68,9 +65,13 @@
 
     <canvas></canvas>
 
+    <!-- Sprites ocultos para todas as naves -->
     <img id="sprite-ship0" src="src/assets/images/spaceship.png" style="display:none">
     <img id="sprite-ship1" src="src/assets/images/spaceship1.png" style="display:none">
     <img id="sprite-ship2" src="src/assets/images/spaceship2.png" style="display:none">
+    <img id="sprite-ship3" src="src/assets/images/spaceship3.png" style="display:none">
+    <img id="sprite-ship4" src="src/assets/images/spaceship4.png" style="display:none">
+    <img id="sprite-ship5" src="src/assets/images/spaceship5.png" style="display:none">
 
     <script type="module" src="src/index.js"></script>
 </body>

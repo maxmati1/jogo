@@ -35,8 +35,32 @@ canvas {
     text-decoration: underline;
 }
 
+/* TÍTULO MAIOR E MAIS PRA CIMA NO MENU INICIAL */
+.start-screen > div > h1 {
+    font-size: 4.5rem;
+    margin-top: 32px;
+    margin-bottom: 32px;
+    color: #fff;
+    letter-spacing: 4px;
+    text-align: center;
+    text-shadow: 0 2px 8px #941cff80;
+}
+
 .start-screen > div {
-    margin-top: auto;
+    margin-top: 0;
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* Se quiser o título ainda mais pra cima, diminua o margin-top */
+@media (max-width: 600px) {
+    .start-screen > div > h1 {
+        font-size: 2.2rem;
+        margin-top: 8px;
+        margin-bottom: 18px;
+    }
 }
 
 .button-play,
@@ -97,6 +121,8 @@ canvas {
     justify-content: center;
     margin-bottom: 1em;
 }
+
+/* NAVES MAIORES PARA SELEÇÃO */
 .ship-btn {
     border: 2px solid transparent;
     background: none;
@@ -108,6 +134,19 @@ canvas {
 .ship-btn.selected {
     border: 2px solid #941CFF;
 }
+
+.ship-btn img {
+    width: 120px;   /* Aumenta ainda mais para melhor visualização */
+    height: 120px;
+    image-rendering: pixelated;
+    transition: transform .2s;
+}
+
+.ship-btn.selected img {
+    transform: scale(1.2);
+    filter: drop-shadow(0 0 12px #4D9BE6);
+}
+
 .game-over-buttons {
     display: flex;
     gap: 2em;
@@ -129,4 +168,19 @@ canvas {
 .button-restart:hover,
 .button-main-menu:hover {
     background: #941CFF;
+}
+
+.ship-select-title {
+    margin-bottom: 10px;
+    font-weight: bold;
+    font-size: 1.25em;
+    text-align: center;
+    color: #dedede;
+    letter-spacing: 1px;
+}
+.ship-selection {
+    display: flex;
+    justify-content: center;
+    gap: 28px;
+    margin-bottom: 10px;
 }

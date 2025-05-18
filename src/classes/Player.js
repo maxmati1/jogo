@@ -20,11 +20,14 @@ class Player {
             y: canvasHeight - this.height - 30,
         };
 
-        // Array com os caminhos das naves
+        // Array com os caminhos das naves (agora 6 naves)
         this.sprites = [
             "src/assets/images/spaceship.png",
             "src/assets/images/spaceship1.png",
-            "src/assets/images/spaceship2.png"
+            "src/assets/images/spaceship2.png",
+            "src/assets/images/spaceship3.png",
+            "src/assets/images/spaceship4.png",
+            "src/assets/images/spaceship5.png"
         ];
 
         // Usa o parâmetro shipType para selecionar a nave
