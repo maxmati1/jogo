@@ -7,6 +7,9 @@ import Star from "./classes/Star.js";
 import { GameState, NUMBER_STARS } from "./utils/constants.js";
 import Boss from "./classes/Boss.js";
 
+// Adiciona novo estado para cutscene do boss
+GameState.CUTSCENE_BOSS = 99;
+
 // Instancia efeitos sonoros e elementos de interface
 const soundEffects = new SoundEffects();
 const startScreen = document.querySelector(".start-screen");
@@ -22,6 +25,10 @@ const shipButtons = document.querySelectorAll('.ship-btn');
 
 let boss = null;         // Boss do jogo
 let bossActive = false;  // Flag para saber se o boss está ativo
+
+// Cutscene do boss
+let cutsceneStartTime = 0;
+let cutsceneDuration = 3000; // ms
 
 // Remove a tela de game over do DOM inicialmente
 gameOverScreen.remove();
@@ -39,7 +46,7 @@ let currentState = GameState.START;
 // Dados do jogo (pontuação, level, recorde)
 const gameData = {
     score: 0,
-    level: 1,
+    level: 9,
     high: 0,
 };
 
@@ -303,8 +310,18 @@ const checkPlayerCollidedInvaders = () => {
 const spawnGrid = () => {
     // Level 10: boss
     if (gameData.level === 10 && !bossActive) {
-        boss = new Boss(canvas.width, canvas.height);
-        bossActive = true;
+        // Antes de ativar o boss, mostra cutscene
+        if (currentState !== GameState.CUTSCENE_BOSS) {
+            currentState = GameState.CUTSCENE_BOSS;
+            cutsceneStartTime = Date.now();
+            return;
+        }
+        // Ativa boss só quando a cutscene acabar
+        if (Date.now() - cutsceneStartTime >= cutsceneDuration) {
+            boss = new Boss(canvas.width, canvas.height);
+            bossActive = true;
+            currentState = GameState.PLAYING;
+        }
         return;
     }
     // Se boss está ativo, não cria grid de invasores
@@ -339,6 +356,57 @@ const gameLoop = () => {
         requestAnimationFrame(gameLoop);
         return;
     }
+
+    // CUTSCENE DO BOSS - Entrada dramática
+if (currentState === GameState.CUTSCENE_BOSS) {
+    ctx.fillStyle = "#000";
+    ctx.globalAlpha = 0.85;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.globalAlpha = 1.0;
+
+    // Instancia o boss se ainda não existe
+    if (!boss) {
+        boss = new Boss(canvas.width, canvas.height);
+        boss.position.x = canvas.width / 2 - boss.width / 2;
+        boss.position.y = -boss.height; // começa fora da tela
+        boss.targetY = canvas.height / 2 - boss.height / 2 - 40; // posição final
+        boss.entryStart = Date.now();
+        boss.entryDuration = 1800; // ms para descer
+        boss.cutsceneSoundPlayed = false;
+    }
+
+    // Move o boss descendo até o centro, usando easing
+    let elapsed = Date.now() - boss.entryStart;
+    let t = Math.min(elapsed / boss.entryDuration, 1);
+    // EaseOutQuad (suave)
+    let eased = 1 - (1 - t) * (1 - t);
+    boss.position.y = -boss.height + (boss.targetY + boss.height) * eased;
+
+    boss.draw(ctx);
+
+    // Texto só aparece depois que boss está quase no lugar
+    if (t > 0.85) {
+        ctx.fillStyle = "#fff";
+        ctx.font = "bold 48px Arial";
+        ctx.textAlign = "center";
+        ctx.fillText("Prepare-se para o chefe!", canvas.width/2, boss.targetY + boss.height + 80);
+    }
+
+    // Efeito sonoro uma única vez quando ele chega
+    if (t > 0.95 && !boss.cutsceneSoundPlayed) {
+        soundEffects.playNextLevelSound(); // troque para som de boss se quiser
+        boss.cutsceneSoundPlayed = true;
+    }
+
+    // Espera boss terminar a descida + tempo extra (total da cutscene)
+    if (elapsed > boss.entryDuration + 1200) {
+        bossActive = true;
+        currentState = GameState.PLAYING;
+    } else {
+        requestAnimationFrame(gameLoop);
+        return;
+    }
+}
 
     // Tela de Game Over
     if (currentState === GameState.GAME_OVER) {
