@@ -99,6 +99,7 @@ shipButtons.forEach(btn => {
 });
 shipButtons[0].classList.add('selected');
 
+//Função que faz aparecer uma caixa de texto ao passar o mouse em cima da seleção de nave
 const shipTooltip = document.getElementById('ship-tooltip');
 shipButtons.forEach((btn, idx) => {
     btn.addEventListener('mouseenter', () => {
