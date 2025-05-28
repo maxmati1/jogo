@@ -1,3 +1,4 @@
+import Projectile from "./Projectile.js";
 import { PATH_BOSS_IMAGE } from "../utils/constants.js";
 
 // Classe Boss representa o chefe do jogo
@@ -23,6 +24,9 @@ class Boss {
         };
         this.hp = 40;         // Vida do boss
         this.alive = true;    // Se o boss está vivo
+        this.shootDelay = 700; // Delay entre tiros
+        this.firstShootDelay = 4000; // Delay inicial antes do primeiro tiro (ms)
+        this.nextShootTime = Date.now() + this.firstShootDelay; // só vai poder atirar depois desse tempo
     }
 
     // Cria e retorna um objeto Image a partir do caminho informado
@@ -80,6 +84,27 @@ class Boss {
             ctx.font = "bold 20px Arial";
             ctx.fillText("BOSS", this.position.x + 40, this.position.y + 55);
         }
+    }
+
+    // Faz o boss atirar projeteis
+    shoot(projectiles) {
+        if (!this.alive) return;
+
+        const now = Date.now();
+        if (now < this.nextShootTime) return; // Só atira depois do tempo permitido
+
+        // Atira
+        const p = new Projectile(
+            {
+                x: this.position.x + this.width / 2 - 2,
+                y: this.position.y + this.height
+            },
+            10 // mesma velocidade dos invaders
+        );
+        projectiles.push(p);
+
+        // Define o próximo tempo de tiro normalmente
+        this.nextShootTime = now + this.shootDelay;
     }
 
     // Verifica se o boss foi atingido por um projétil

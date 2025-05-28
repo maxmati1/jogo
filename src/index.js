@@ -46,7 +46,7 @@ let currentState = GameState.START;
 // Dados do jogo (pontuação, level, recorde)
 const gameData = {
     score: 0,
-    level: 9,
+    level: 1,
     high: 0,
 };
 
@@ -357,7 +357,7 @@ const gameLoop = () => {
         return;
     }
 
-    // CUTSCENE DO BOSS - Entrada dramática
+ // CUTSCENE DO BOSS - Entrada dramática e letal
 if (currentState === GameState.CUTSCENE_BOSS) {
     ctx.fillStyle = "#000";
     ctx.globalAlpha = 0.85;
@@ -368,21 +368,59 @@ if (currentState === GameState.CUTSCENE_BOSS) {
     if (!boss) {
         boss = new Boss(canvas.width, canvas.height);
         boss.position.x = canvas.width / 2 - boss.width / 2;
-        boss.position.y = -boss.height; // começa fora da tela
-        boss.targetY = canvas.height / 2 - boss.height / 2 - 40; // posição final
+        boss.position.y = -boss.height;
+        boss.targetY = canvas.height / 2 - boss.height / 2 - 40;
         boss.entryStart = Date.now();
-        boss.entryDuration = 1800; // ms para descer
+        boss.entryDuration = 1800;
         boss.cutsceneSoundPlayed = false;
     }
 
     // Move o boss descendo até o centro, usando easing
-    let elapsed = Date.now() - boss.entryStart;
-    let t = Math.min(elapsed / boss.entryDuration, 1);
-    // EaseOutQuad (suave)
-    let eased = 1 - (1 - t) * (1 - t);
+    const elapsed = Date.now() - boss.entryStart;
+    const t = Math.min(elapsed / boss.entryDuration, 1);
+    const eased = 1 - (1 - t) * (1 - t);
     boss.position.y = -boss.height + (boss.targetY + boss.height) * eased;
 
     boss.draw(ctx);
+
+    // Desenha o player parado durante a cutscene
+    player.draw(ctx);
+
+    // CHECA COLISÃO BOSS X PLAYER
+    if (
+        boss.position.x < player.position.x + player.width &&
+        boss.position.x + boss.width > player.position.x &&
+        boss.position.y < player.position.y + player.height &&
+        boss.position.y + boss.height > player.position.y &&
+        player.alive
+    ) {
+        player.alive = false;
+        soundEffects.playExplosionSound();
+        createExplosion(
+            {
+                x: player.position.x + player.width / 2,
+                y: player.position.y + player.height / 2,
+            },
+            10, "white"
+        );
+        createExplosion(
+            {
+                x: player.position.x + player.width / 2,
+                y: player.position.y + player.height / 2,
+            },
+            5, "#4D9BE6"
+        );
+        createExplosion(
+            {
+                x: player.position.x + player.width / 2,
+                y: player.position.y + player.height / 2,
+            },
+            5, "crimson"
+        );
+        currentState = GameState.GAME_OVER;
+        showGameOverScreen();
+        return; // IMPORTANTE
+    }
 
     // Texto só aparece depois que boss está quase no lugar
     if (t > 0.85) {
@@ -394,7 +432,7 @@ if (currentState === GameState.CUTSCENE_BOSS) {
 
     // Efeito sonoro uma única vez quando ele chega
     if (t > 0.95 && !boss.cutsceneSoundPlayed) {
-        soundEffects.playNextLevelSound(); // troque para som de boss se quiser
+        soundEffects.playNextLevelSound();
         boss.cutsceneSoundPlayed = true;
     }
 
@@ -406,8 +444,7 @@ if (currentState === GameState.CUTSCENE_BOSS) {
         requestAnimationFrame(gameLoop);
         return;
     }
-}
-
+} 
     // Tela de Game Over
     if (currentState === GameState.GAME_OVER) {
         showGameData();
@@ -446,6 +483,12 @@ if (currentState === GameState.CUTSCENE_BOSS) {
     if (bossActive && boss && boss.alive) {
         boss.update();
         boss.draw(ctx);
+
+         // Boss atira em loop (igual invader)
+    if (!boss.shootTimer || Date.now() - boss.shootTimer > 1100) { // intervalo ajustável
+        boss.shoot(invadersProjectiles);
+        boss.shootTimer = Date.now();
+    }
 
         // Checa se tiros do player acertam o boss
         for (let i = playerProjectiles.length - 1; i >= 0; i--) {
