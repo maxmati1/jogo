@@ -22,6 +22,37 @@ const buttonPlay = document.querySelector(".button-play");
 const buttonRestart = document.querySelector(".button-restart");
 const buttonMainMenu = document.querySelector(".button-main-menu");
 const shipButtons = document.querySelectorAll('.ship-btn');
+const shipHistories = [
+    {
+        text:[
+            "Capitão Astro: Astro nasceu em uma base lunar e foi treinado desde pequeno para defender a Terra. ",
+            "Agora, como líder da elite espacial, ele enfrenta os temidos Draxxion, uma raça alienígena que ameaça destruir tudo o que conhecemos.",
+
+        ], 
+        img: "src/assets/images/piloto01.png"
+    },
+    {
+        text: "Tenente Nova: Jovem gênio da navegação, venceu a Corrida de Andrômeda aos 16 anos.",
+        img: "src/assets/images/spaceship1.png"
+    },
+    {
+        text: "Comandante Orion: Sobrevivente do ataque de Vega, promete vingança contra invasores.",
+        img: "src/assets/images/spaceship2.png"
+    },
+    {
+        text: "Dra. Stella: Cientista e piloto, inventora do propulsor de dobra quântica.",
+        img: "src/assets/images/spaceship3.png"
+    },
+    {
+        text: "Major Pulsar: Ex-mercenário, agora luta pela liberdade dos planetas aliados.",
+        img: "src/assets/images/spaceship4.png"
+    },
+    {
+        text: "Ensign Comet: Recruta promissor, sonha em ser o maior herói da galáxia.",
+        img: "src/assets/images/spaceship5.png"
+    }
+];
+
 
 let boss = null;         // Boss do jogo
 let bossActive = false;  // Flag para saber se o boss está ativo
@@ -67,6 +98,25 @@ shipButtons.forEach(btn => {
     });
 });
 shipButtons[0].classList.add('selected');
+
+//Função que faz aparecer uma caixa de texto ao passar o mouse em cima da seleção de nave
+const shipTooltip = document.getElementById('ship-tooltip');
+shipButtons.forEach((btn, idx) => {
+    btn.addEventListener('mouseenter', () => {
+        shipTooltip.innerHTML = `
+            <img src="${shipHistories[idx].img}" alt="Nave ${idx}" style="width:48px;height:48px;display:block;margin:0 auto 0.5em auto;">
+            <div>${shipHistories[idx].text}</div>
+        `;
+        const rect = btn.getBoundingClientRect();
+        shipTooltip.style.left = `${rect.left + rect.width / 2 - 120}px`;
+        shipTooltip.style.top = `${rect.top - 70}px`;
+        shipTooltip.style.display = "block";
+    });
+    btn.addEventListener('mouseleave', () => {
+        shipTooltip.style.display = "none";
+    });
+});
+
 
 // ====== PLAYER ======
 let player = new Player(canvas.width, canvas.height, selectedShipIndex);
