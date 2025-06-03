@@ -1,4 +1,4 @@
-Jogo: Galatic Defenders
+## Jogo: Galatic Defenders
 
 Este projeto apresenta um jogo estilo space invaders.
 
