@@ -9,6 +9,29 @@ import Boss from "./classes/Boss.js";
 import Boss1 from "./classes/Boss1.js"; // Adicionado para boss do level 15
 import Boss2 from "./classes/Boss2.js"; // Adicionado para boss do level 20
 
+const difficulties = [
+  {
+    nome: "Fácil",
+    gridRows: 2,
+    gridCols: 2,
+    invaderVelocity: 1.2
+  },
+  {
+    nome: "Médio",
+    gridRows: 3,
+    gridCols: 4,
+    invaderVelocity: 2
+  },
+  {
+    nome: "Difícil",
+    gridRows: 5,
+    gridCols: 6,
+    invaderVelocity: 3.2
+  }
+];
+let difficultyIndex = 1; // Começa em Médio
+let currentDifficulty = difficulties[difficultyIndex];
+
 // Adiciona novo estado para cutscene do boss
 GameState.CUTSCENE_BOSS = 99;
 
@@ -20,6 +43,16 @@ const scoreUi = document.querySelector(".score-ui");
 const scoreElement = scoreUi.querySelector(".score > span");
 const levelElement = scoreUi.querySelector(".level > span");
 const highElement = scoreUi.querySelector(".high > span");
+const difficultyBtn = document.getElementById("difficulty-btn");
+difficultyBtn.textContent = currentDifficulty.nome;
+
+// Evento para alternar dificuldade
+difficultyBtn.addEventListener("click", () => {
+  difficultyIndex = (difficultyIndex + 1) % difficulties.length;
+  currentDifficulty = difficulties[difficultyIndex];
+  difficultyBtn.textContent = currentDifficulty.nome;
+});
+
 const buttonPlay = document.querySelector(".button-play");
 const buttonRestart = document.querySelector(".button-restart");
 const buttonMainMenu = document.querySelector(".button-main-menu");
@@ -491,9 +524,12 @@ const spawnGrid = () => {
         const maxGrid = 8;
         let gridSize = Math.min(minGrid + Math.floor((gameData.level - 1) / 2), maxGrid);
 
-        grid.rows = gridSize;
-        grid.cols = gridSize;
-
+                    grid.rows = currentDifficulty.gridRows + Math.floor((gameData.level - 1) / 2);
+                    grid.cols = currentDifficulty.gridCols + Math.floor((gameData.level - 1) / 2);
+                    grid.restart();
+                    grid.invaders.forEach(invader => {
+                 invader.velocity = currentDifficulty.invaderVelocity + gameData.level * 0.2;
+            });
         grid.restart();
         incrementLevel(); // O level só sobe aqui!
         if (obstacles.length === 0) {
@@ -801,6 +837,13 @@ buttonPlay.addEventListener("click", () => {
     scoreUi.style.display = "block";
     currentState = GameState.PLAYING;
     player = new Player(canvas.width, canvas.height, selectedShipIndex);
+
+    grid.rows = currentDifficulty.gridRows;
+    grid.cols = currentDifficulty.gridCols;
+    grid.restart();
+    grid.invaders.forEach(invader => {
+    invader.velocity = currentDifficulty.invaderVelocity;
+    }); 
 
     if (shootLoopTimeout) {
         clearTimeout(shootLoopTimeout);
