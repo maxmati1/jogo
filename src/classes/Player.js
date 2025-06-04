@@ -22,12 +22,12 @@ class Player {
 
         // Array com os caminhos das naves (agora 6 naves)
         this.sprites = [
-            "src/assets/images/spaceship.png",
-            "src/assets/images/spaceship1.png",
-            "src/assets/images/spaceship2.png",
-            "src/assets/images/spaceship3.png",
-            "src/assets/images/spaceship4.png",
-            "src/assets/images/spaceship5.png"
+            "src/assets/images/space1.png",
+            "src/assets/images/space2.png",
+            "src/assets/images/space3.png",
+            "src/assets/images/space4.png",
+            "src/assets/images/space5.png",
+            "src/assets/images/space6.png"
         ];
 
         // Usa o parâmetro shipType para selecionar a nave
@@ -58,13 +58,7 @@ class Player {
 
     // desenha a nave e os efeitos na tela
     draw(ctx) {
-        ctx.drawImage(
-            this.image,
-            this.position.x,
-            this.position.y,
-            this.width,
-            this.height
-        );
+        
 
         // desenha a animação do motor (spritesheet animado)
         ctx.drawImage(
@@ -79,11 +73,21 @@ class Player {
             this.height
         );
 
+        
+
         // desenha a imagem estática do motor em cima da animação
         ctx.drawImage(
             this.engineImage,
             this.position.x,
             this.position.y + 8,
+            this.width,
+            this.height
+        );
+
+        ctx.drawImage(
+            this.image,
+            this.position.x,
+            this.position.y,
             this.width,
             this.height
         );
