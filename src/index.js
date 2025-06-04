@@ -110,7 +110,7 @@ let currentState = GameState.START;
 // Dados do jogo (pontuação, level, recorde)
 const gameData = {
     score: 0,
-    level: 1,
+    level: 10,
     high: 0,
 };
 
@@ -641,6 +641,10 @@ const gameLoop = () => {
         // Depois da cutscene, posicione o boss na linha dos invaders para o gameplay
         boss.position.y = 120;
         boss.shootTimer = Date.now(); // Faz o boss esperar o delay do tiro!
+        
+        // Limpa os tiros dos inimigos e do player para evitar projéteis bugados
+        invadersProjectiles.length = 0;
+        playerProjectiles.length = 0;
         currentState = GameState.PLAYING;
     } else {
         requestAnimationFrame(gameLoop);
