@@ -6,6 +6,8 @@ import SoundEffects from "./classes/SoundEffects.js";
 import Star from "./classes/Star.js";
 import { GameState, NUMBER_STARS } from "./utils/constants.js";
 import Boss from "./classes/Boss.js";
+import Boss1 from "./classes/Boss1.js"; // Adicionado para boss do level 15
+import Boss2 from "./classes/Boss2.js"; // Adicionado para boss do level 20
 
 // Adiciona novo estado para cutscene do boss
 GameState.CUTSCENE_BOSS = 99;
@@ -27,7 +29,6 @@ const shipHistories = [
         text:[
             "Capitão Astro: Astro nasceu em uma base lunar e foi treinado desde pequeno para defender a Terra. ",
             "Agora, como líder da elite espacial, ele enfrenta os temidos Draxxion, uma raça alienígena que ameaça destruir tudo o que conhecemos.",
-
         ], 
         img: "src/assets/images/piloto01.png"
     },
@@ -76,7 +77,7 @@ let currentState = GameState.START;
 // Dados do jogo (pontuação, level, recorde)
 const gameData = {
     score: 0,
-    level: 1,
+    level: 14,
     high: 0,
 };
 
@@ -355,20 +356,126 @@ const checkPlayerCollidedInvaders = () => {
     }
 };
 
-// Função para criar nova grade de invasores ou boss se for o caso
+// Checa se o boss colidiu com barreiras e destrói elas
+const checkBossCollidedObstacles = () => {
+    if (bossActive && boss && boss.alive) {
+        for (let i = obstacles.length - 1; i >= 0; i--) {
+            if (boss.collided(obstacles[i])) {
+                obstacles.splice(i, 1); // destrói a barreira
+            }
+        }
+    }
+};
+// Checa se o boss colidiu com o player e mata o jogador
+const checkBossCollidedPlayer = () => {
+    if (bossActive && boss && boss.alive && player.alive) {
+        if (boss.collided(player)) {
+            soundEffects.playExplosionSound();
+            createExplosion(
+                {x: player.position.x + player.width / 2, y: player.position.y + player.height / 2}, 10, "white"
+            );
+            createExplosion(
+                {x: player.position.x + player.width / 2, y: player.position.y + player.height / 2}, 5, "#4D9BE6"
+            );
+            createExplosion(
+                {x: player.position.x + player.width / 2, y: player.position.y + player.height / 2}, 5, "crimson"
+            );
+            player.alive = false;
+            currentState = GameState.GAME_OVER;
+            showGameOverScreen();
+        }
+    }
+};
+
+// ===========================
+// CONTROLE DE TIRO DOS INVADERS
+// ===========================
+
+let shootLoopTimeout = null;
+
+function startShootLoop() {
+    if (shootLoopTimeout) {
+        clearTimeout(shootLoopTimeout);
+        shootLoopTimeout = null;
+    }
+    shootLoop();
+}
+
+function shootLoop() {
+    if (bossActive || currentState === GameState.CUTSCENE_BOSS) {
+        shootLoopTimeout = null;
+        return;
+    }
+    const invader = grid.getRandomInvader();
+    if (invader) {
+        invader.shoot(invadersProjectiles);
+    }
+    let shootInterval = 1500 - gameData.level * 50;
+    if (shootInterval < 300) shootInterval = 300;
+    shootLoopTimeout = setTimeout(shootLoop, shootInterval);
+}
+
+// ===========================
+// FIM DO CONTROLE DE TIRO DOS INVADERS
+// ===========================
+
 const spawnGrid = () => {
-    // Level 10: boss
+    // Level 10: boss padrão
     if (gameData.level === 10 && !bossActive) {
-        // Antes de ativar o boss, mostra cutscene
         if (currentState !== GameState.CUTSCENE_BOSS) {
             currentState = GameState.CUTSCENE_BOSS;
             cutsceneStartTime = Date.now();
             return;
         }
-        // Ativa boss só quando a cutscene acabar
         if (Date.now() - cutsceneStartTime >= cutsceneDuration) {
             boss = new Boss(canvas.width, canvas.height);
             bossActive = true;
+            playerProjectiles.length = 0;
+            invadersProjectiles.length = 0;
+            if (shootLoopTimeout) {
+                clearTimeout(shootLoopTimeout);
+                shootLoopTimeout = null;
+            }
+            currentState = GameState.PLAYING;
+        }
+        return;
+    }
+    // Level 15: Boss1
+    if (gameData.level === 15 && !bossActive) {
+        if (currentState !== GameState.CUTSCENE_BOSS) {
+            currentState = GameState.CUTSCENE_BOSS;
+            cutsceneStartTime = Date.now();
+            return;
+        }
+        if (Date.now() - cutsceneStartTime >= cutsceneDuration) {
+            boss = new Boss1(canvas.width, canvas.height);
+            bossActive = true;
+            playerProjectiles.length = 0;
+            invadersProjectiles.length = 0;
+            if (shootLoopTimeout) {
+                clearTimeout(shootLoopTimeout);
+                shootLoopTimeout = null;
+            }
+            currentState = GameState.PLAYING;
+        }
+        return;
+    }
+    // Level 20: Boss2
+    if (gameData.level === 20 && !bossActive) {
+        if (currentState !== GameState.CUTSCENE_BOSS) {
+            currentState = GameState.CUTSCENE_BOSS;
+            cutsceneStartTime = Date.now();
+            return;
+        }
+        if (Date.now() - cutsceneStartTime >= cutsceneDuration) {
+            boss = new Boss2(canvas.width, canvas.height);
+            bossActive = true;
+            playerProjectiles.length = 0;
+            invadersProjectiles.length = 0;
+            if (shootLoopTimeout) {
+                clearTimeout(shootLoopTimeout);
+                shootLoopTimeout = null;
+            }
             currentState = GameState.PLAYING;
         }
         return;
@@ -392,6 +499,7 @@ const spawnGrid = () => {
         if (obstacles.length === 0) {
             initObstacles();
         }
+        if (!bossActive && !shootLoopTimeout) startShootLoop();
     }
 };
 
@@ -406,33 +514,48 @@ const gameLoop = () => {
         return;
     }
 
- // CUTSCENE DO BOSS - Entrada dramática e letal
-if (currentState === GameState.CUTSCENE_BOSS) {
-    ctx.fillStyle = "#000";
-    ctx.globalAlpha = 0.85;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    ctx.globalAlpha = 1.0;
-
+ // CUTSCENE DO BOSS - Entrada dramática com descida ao centro, zoom e tremor
+ if (currentState === GameState.CUTSCENE_BOSS) {
     // Instancia o boss se ainda não existe
     if (!boss) {
-        boss = new Boss(canvas.width, canvas.height);
+        if (gameData.level === 10) boss = new Boss(canvas.width, canvas.height);
+        else if (gameData.level === 15) boss = new Boss1(canvas.width, canvas.height);
+        else if (gameData.level === 20) boss = new Boss2(canvas.width, canvas.height);
+        else boss = new Boss(canvas.width, canvas.height);
+
         boss.position.x = canvas.width / 2 - boss.width / 2;
         boss.position.y = -boss.height;
-        boss.targetY = canvas.height / 2 - boss.height / 2 - 40;
+        // Descer até o centro da tela na cutscene
+        boss.targetY = canvas.height / 2 - boss.height / 2;
         boss.entryStart = Date.now();
-        boss.entryDuration = 1800;
+        boss.entryDuration = 4000; // desce lentamente
         boss.cutsceneSoundPlayed = false;
     }
 
-    // Move o boss descendo até o centro, usando easing
     const elapsed = Date.now() - boss.entryStart;
     const t = Math.min(elapsed / boss.entryDuration, 1);
-    const eased = 1 - (1 - t) * (1 - t);
+    // Easing para descida mais suave
+    const eased = 1 - Math.pow(1 - t, 3);
     boss.position.y = -boss.height + (boss.targetY + boss.height) * eased;
 
+    // Tremor da tela (shake)
+    let shakeX = Math.sin(elapsed * 0.18) * 10 * (1 - t);
+    let shakeY = Math.cos(elapsed * 0.21) * 8 * (1 - t);
+
+    // Zoom dramático no boss (aumenta de 1x até 2x no final da cutscene)
+    let zoom = 1 + 1 * t;
+
+    ctx.save();
+    ctx.translate(canvas.width / 2, canvas.height / 2);
+    ctx.scale(zoom, zoom);
+    ctx.translate(-canvas.width / 2 + shakeX / zoom, -canvas.height / 2 + shakeY / zoom);
+
+    // Desenha o boss (com zoom e shake aplicados)
     boss.draw(ctx);
 
-    // Desenha o player parado durante a cutscene
+    ctx.restore();
+
+    // Desenha o player parado durante a cutscene (sem zoom, no lugar normal)
     player.draw(ctx);
 
     // CHECA COLISÃO BOSS X PLAYER
@@ -446,40 +569,31 @@ if (currentState === GameState.CUTSCENE_BOSS) {
         player.alive = false;
         soundEffects.playExplosionSound();
         createExplosion(
-            {
-                x: player.position.x + player.width / 2,
-                y: player.position.y + player.height / 2,
-            },
-            10, "white"
+            {x: player.position.x + player.width / 2, y: player.position.y + player.height / 2}, 10, "white"
         );
         createExplosion(
-            {
-                x: player.position.x + player.width / 2,
-                y: player.position.y + player.height / 2,
-            },
-            5, "#4D9BE6"
+            {x: player.position.x + player.width / 2, y: player.position.y + player.height / 2}, 5, "#4D9BE6"
         );
         createExplosion(
-            {
-                x: player.position.x + player.width / 2,
-                y: player.position.y + player.height / 2,
-            },
-            5, "crimson"
+            {x: player.position.x + player.width / 2, y: player.position.y + player.height / 2}, 5, "crimson"
         );
         currentState = GameState.GAME_OVER;
         showGameOverScreen();
-        return; // IMPORTANTE
+        return;
     }
 
-    // Texto só aparece depois que boss está quase no lugar
+    // Texto só aparece quando boss está quase no lugar
     if (t > 0.85) {
+        ctx.save();
+        ctx.globalAlpha = (t - 0.85) / 0.15;
         ctx.fillStyle = "#fff";
         ctx.font = "bold 48px Arial";
         ctx.textAlign = "center";
-        ctx.fillText("Prepare-se para o chefe!", canvas.width/2, boss.targetY + boss.height + 80);
+        ctx.fillText("Prepare-se para o chefe!", canvas.width/2, boss.targetY + boss.height + 120);
+        ctx.restore();
     }
 
-    // Efeito sonoro uma única vez quando ele chega
+    // Efeito sonoro quando chega
     if (t > 0.95 && !boss.cutsceneSoundPlayed) {
         soundEffects.playNextLevelSound();
         boss.cutsceneSoundPlayed = true;
@@ -488,12 +602,17 @@ if (currentState === GameState.CUTSCENE_BOSS) {
     // Espera boss terminar a descida + tempo extra (total da cutscene)
     if (elapsed > boss.entryDuration + 1200) {
         bossActive = true;
+        // Depois da cutscene, posicione o boss na linha dos invaders para o gameplay
+        boss.position.y = 120;
+        boss.shootTimer = Date.now(); // Faz o boss esperar o delay do tiro!
         currentState = GameState.PLAYING;
     } else {
         requestAnimationFrame(gameLoop);
         return;
     }
-} 
+}
+
+
     // Tela de Game Over
     if (currentState === GameState.GAME_OVER) {
         showGameData();
@@ -533,11 +652,15 @@ if (currentState === GameState.CUTSCENE_BOSS) {
         boss.update();
         boss.draw(ctx);
 
-         // Boss atira em loop (igual invader)
-    if (!boss.shootTimer || Date.now() - boss.shootTimer > 1100) { // intervalo ajustável
-        boss.shoot(invadersProjectiles);
-        boss.shootTimer = Date.now();
-    }
+        // Boss destrói barreiras ao relar e mata jogador ao relar
+        checkBossCollidedObstacles();
+        checkBossCollidedPlayer();
+
+        // Boss atira em loop (igual invader)
+        if (!boss.shootTimer || Date.now() - boss.shootTimer > 1100) {
+            boss.shoot(invadersProjectiles);
+            boss.shootTimer = Date.now();
+        }
 
         // Checa se tiros do player acertam o boss
         for (let i = playerProjectiles.length - 1; i >= 0; i--) {
@@ -563,8 +686,8 @@ if (currentState === GameState.CUTSCENE_BOSS) {
             if (obstacles.length === 0) {
                 initObstacles();
             }
+            if (!bossActive && !shootLoopTimeout) startShootLoop();
         }
-        // Enquanto boss está ativo, não atualiza/dedesenha grid
     } else {
         // --- GRID NORMAL (quando NÃO for boss) ---
         spawnGrid();
@@ -625,6 +748,7 @@ const restartGame = () => {
     boss = null;
     bossActive = false;
     initObstacles();
+    if (!bossActive && !shootLoopTimeout) startShootLoop();
 };
 
 // Volta ao menu principal
@@ -647,6 +771,10 @@ const goToMainMenu = () => {
     boss = null;
     bossActive = false;
     initObstacles();
+    if (shootLoopTimeout) {
+        clearTimeout(shootLoopTimeout);
+        shootLoopTimeout = null;
+    }
 };
 
 // Controles de teclado para mover e atirar
@@ -674,20 +802,11 @@ buttonPlay.addEventListener("click", () => {
     currentState = GameState.PLAYING;
     player = new Player(canvas.width, canvas.height, selectedShipIndex);
 
-    // Função para invaders atirarem em loop (exceto se boss está ativo)
-    const shootLoop = () => {
-        if (!bossActive) {
-            const invader = grid.getRandomInvader();
-            if (invader) {
-                invader.shoot(invadersProjectiles);
-            }
-        }
-        let shootInterval = 1000 - gameData.level * 50;
-        if (shootInterval < 300) shootInterval = 300;
-        setTimeout(shootLoop, shootInterval);
-    };
-
-    shootLoop();
+    if (shootLoopTimeout) {
+        clearTimeout(shootLoopTimeout);
+        shootLoopTimeout = null;
+    }
+    startShootLoop();
 });
 
 // Botões para reiniciar ou voltar ao menu
