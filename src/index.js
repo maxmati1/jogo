@@ -53,7 +53,6 @@ const shipHistories = [
     }
 ];
 
-
 let boss = null;         // Boss do jogo
 let bossActive = false;  // Flag para saber se o boss está ativo
 
