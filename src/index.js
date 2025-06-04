@@ -30,27 +30,27 @@ const shipHistories = [
             "Capitão Astro: Astro nasceu em uma base lunar e foi treinado desde pequeno para defender a Terra. ",
             "Agora, como líder da elite espacial, ele enfrenta os temidos Draxxion, uma raça alienígena que ameaça destruir tudo o que conhecemos.",
         ], 
-        img: "src/assets/images/piloto01.png"
+        img: "src/assets/images/piloto1.png"
     },
     {
         text: "Tenente Nova: Jovem gênio da navegação, venceu a Corrida de Andrômeda aos 16 anos.",
-        img: "src/assets/images/spaceship1.png"
+        img: "src/assets/images/piloto2.png"
     },
     {
         text: "Comandante Orion: Sobrevivente do ataque de Vega, promete vingança contra invasores.",
-        img: "src/assets/images/spaceship2.png"
+        img: "src/assets/images/piloto3.png"
     },
     {
         text: "Dra. Stella: Cientista e piloto, inventora do propulsor de dobra quântica.",
-        img: "src/assets/images/spaceship3.png"
+        img: "src/assets/images/piloto4.png"
     },
     {
         text: "Major Pulsar: Ex-mercenário, agora luta pela liberdade dos planetas aliados.",
-        img: "src/assets/images/spaceship4.png"
+        img: "src/assets/images/piloto5.png"
     },
     {
         text: "Ensign Comet: Recruta promissor, sonha em ser o maior herói da galáxia.",
-        img: "src/assets/images/spaceship5.png"
+        img: "src/assets/images/piloto6.png"
     }
 ];
 
