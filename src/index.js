@@ -59,10 +59,7 @@ const buttonMainMenu = document.querySelector(".button-main-menu");
 const shipButtons = document.querySelectorAll('.ship-btn');
 const shipHistories = [
     {
-        text:[
-            "Capitão Astro: Astro nasceu em uma base lunar e foi treinado desde pequeno para defender a Terra. ",
-            "Agora, como líder da elite espacial, ele enfrenta os temidos Draxxion, uma raça alienígena que ameaça destruir tudo o que conhecemos.",
-        ], 
+        text:"Capitão Astro: Líder corajoso da frota espacial, pilota a nave Solarion para defender a Terra dos ataques alienígenas dos Draxxion. ",
         img: "src/assets/images/piloto1.png"
     },
     {

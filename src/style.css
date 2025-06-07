@@ -229,6 +229,7 @@ canvas {
   color: #fafafa;
   font-weight: 600;
   text-shadow: 1px 1px 2px #2223;
+  text-decoration: none;
 }
 
 .difficulty-selector button {
