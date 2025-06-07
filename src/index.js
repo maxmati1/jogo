@@ -14,19 +14,19 @@ const difficulties = [
     nome: "Fácil",
     gridRows: 2,
     gridCols: 2,
-    invaderVelocity: 1.2
+    invaderVelocity: 1
   },
   {
     nome: "Médio",
     gridRows: 3,
     gridCols: 4,
-    invaderVelocity: 2
+    invaderVelocity: 1.7
   },
   {
     nome: "Difícil",
     gridRows: 5,
     gridCols: 6,
-    invaderVelocity: 3.2
+    invaderVelocity: 3
   }
 ];
 let difficultyIndex = 1; // Começa em Médio
@@ -443,7 +443,7 @@ function shootLoop() {
     if (invader) {
         invader.shoot(invadersProjectiles);
     }
-    let shootInterval = 1500 - gameData.level * 50;
+    let shootInterval = 2000 - gameData.level * 50;
     if (shootInterval < 300) shootInterval = 300;
     shootLoopTimeout = setTimeout(shootLoop, shootInterval);
 }
@@ -451,6 +451,10 @@ function shootLoop() {
 // ===========================
 // FIM DO CONTROLE DE TIRO DOS INVADERS
 // ===========================
+
+const MAX_ROWS = 6; // Máximo de linhas de invaders
+const MAX_COLS = 10; // Máximo de colunas de invaders
+const MAX_INVADER_VELOCITY = 6; // Velocidade máxima dos invaders
 
 const spawnGrid = () => {
     // Level 10: boss padrão
@@ -520,18 +524,30 @@ const spawnGrid = () => {
     if (grid.invaders.length === 0) {
         soundEffects.playNextLevelSound();
 
-        const minGrid = 2;
-        const maxGrid = 8;
-        let gridSize = Math.min(minGrid + Math.floor((gameData.level - 1) / 2), maxGrid);
+        // Limite de linhas e colunas
+        let gridRows = Math.min(
+            currentDifficulty.gridRows + Math.floor((gameData.level - 1) / 2),
+            MAX_ROWS
+        );
+        let gridCols = Math.min(
+            currentDifficulty.gridCols + Math.floor((gameData.level - 1) / 2),
+            MAX_COLS
+        );
 
-                    grid.rows = currentDifficulty.gridRows + Math.floor((gameData.level - 1) / 2);
-                    grid.cols = currentDifficulty.gridCols + Math.floor((gameData.level - 1) / 2);
-                    grid.restart();
-                    grid.invaders.forEach(invader => {
-                 invader.velocity = currentDifficulty.invaderVelocity + gameData.level * 0.2;
-            });
+        grid.rows = gridRows;
+        grid.cols = gridCols;
         grid.restart();
-        incrementLevel(); // O level só sobe aqui!
+
+        // Limita a velocidade máxima dos invaders
+        const velocity = Math.min(
+            currentDifficulty.invaderVelocity + gameData.level * 0.2,
+            MAX_INVADER_VELOCITY
+        );
+        grid.invaders.forEach(invader => {
+            invader.velocity = velocity;
+        });
+
+        incrementLevel();
         if (obstacles.length === 0) {
             initObstacles();
         }
@@ -783,11 +799,20 @@ const restartGame = () => {
     invadersProjectiles.length = 0;
     playerProjectiles.length = 0;
     gameData.score = 0;
-    gameData.level = 0;
+    gameData.level = 1; // Começa do nível 1!
     obstacles.length = 0;
     boss = null;
     bossActive = false;
     initObstacles();
+
+    // Aqui atualizamos o grid para a dificuldade escolhida:
+    grid.rows = currentDifficulty.gridRows;
+    grid.cols = currentDifficulty.gridCols;
+    grid.restart();
+    grid.invaders.forEach(invader => {
+        invader.velocity = currentDifficulty.invaderVelocity;
+    });
+
     if (!bossActive && !shootLoopTimeout) startShootLoop();
 };
 

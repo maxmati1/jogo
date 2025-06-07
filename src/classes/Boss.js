@@ -13,7 +13,7 @@ class Boss {
         };
         this.canvasWidth = canvasWidth;   // Largura do canvas (para limites)
         this.canvasHeight = canvasHeight; // Altura do canvas (não usado aqui, mas disponível)
-        this.velocityX = 1;   // Velocidade horizontal do boss
+        this.velocityX = 3;   // Velocidade horizontal do boss
         this.velocityY = 0;   // Não usada, mas disponível para movimentos verticais futuros
         // Carrega a imagem do boss
         this.image = this.getImage(PATH_BOSS_IMAGE);
@@ -24,7 +24,7 @@ class Boss {
         };
         this.hp = 40;         // Vida do boss
         this.alive = true;    // Se o boss está vivo
-        this.shootDelay = 700; // Delay entre tiros
+        this.shootDelay = 500; // Delay entre tiros
         this.firstShootDelay = 4000; // Delay inicial antes do primeiro tiro (ms)
         this.nextShootTime = Date.now() + this.firstShootDelay; // só vai poder atirar depois desse tempo
     }

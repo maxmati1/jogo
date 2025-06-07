@@ -259,3 +259,47 @@ canvas {
   transform: scale(0.97);
   box-shadow: 0 1px 4px #2226;
 }
+
+/* COMO JOGAR NO CANTO DIREITO, TAMANHO UM POUCO MAIOR E MAIS ESPAÇADO (SUAVE) */
+.how-to-play {
+    position: absolute;
+    top: 50%;
+    right: 5vw;
+    transform: translateY(-50%);
+    margin: 0;
+    max-width: 420px;
+    min-width: 220px;
+    min-height: 180px;
+    z-index: 30;
+    box-shadow: 0 4px 32px #000b;
+    background: #111b;
+    border-radius: 18px;
+    padding: 1.2em 1.2em 1em 1em;
+    font-size: 1.08em;
+    letter-spacing: 0.08em;
+    line-height: 1.65;
+}
+
+.how-to-play h3 {
+    margin: 0 0 0.7em 0;
+    font-size: 1.17em;
+    color: #ffd700;
+    text-align: left;
+    letter-spacing: 0.11em;
+}
+
+.how-to-play ul {
+    list-style: disc inside;
+    padding-left: 0;
+    font-size: 1em;
+    color: #fff;
+    text-align: left;
+    margin: 0;
+    width: 100%;
+}
+
+.how-to-play li {
+    margin-bottom: 0.5em;
+    line-height: 1.7;
+    letter-spacing: 0.11em;
+}
