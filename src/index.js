@@ -107,7 +107,7 @@ let currentState = GameState.START;
 // Dados do jogo (pontuação, level, recorde)
 const gameData = {
     score: 0,
-    level: 10,
+    level: 1,
     high: 0,
     enemiesDefeated: 0,
 };
