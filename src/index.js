@@ -26,7 +26,7 @@ const difficulties = [
     nome: "Difícil",
     gridRows: 5,
     gridCols: 6,
-    invaderVelocity: 3
+    invaderVelocity: 3.2
   }
 ];
 let difficultyIndex = 1; // Começa em Médio
@@ -107,8 +107,9 @@ let currentState = GameState.START;
 // Dados do jogo (pontuação, level, recorde)
 const gameData = {
     score: 0,
-    level: 1,
+    level: 10,
     high: 0,
+    enemiesDefeated: 0,
 };
 
 // Atualiza a interface com os dados do jogo
@@ -138,8 +139,8 @@ shipButtons.forEach((btn, idx) => {
             <div>${shipHistories[idx].text}</div>
         `;
         const rect = btn.getBoundingClientRect();
-        shipTooltip.style.left = `${rect.left + rect.width / 2 - 120}px`;
-        shipTooltip.style.top = `${rect.top - 70}px`;
+        shipTooltip.style.left = '${rect.left + rect.width / 2 - 120}px';
+        shipTooltip.style.top = '${rect.top - 70}px';
         shipTooltip.style.display = "block";
     });
     btn.addEventListener('mouseleave', () => {
@@ -287,6 +288,7 @@ const checkShootInvaders = () => {
                     "#941CFF"
                 );
                 incrementScore(10);
+                gameData.enemiesDefeated++; // incrementa abates
                 grid.invaders.splice(invaderIndex, 1);
                 playerProjectiles.splice(projectileIndex, 1);
                 break;
@@ -299,6 +301,10 @@ const checkShootInvaders = () => {
 const showGameOverScreen = () => {
     document.body.append(gameOverScreen);
     gameOverScreen.classList.add("zoom-animation");
+    // Atualiza as estatísticas na tela
+    gameOverScreen.querySelector(".stat-score").textContent = gameData.score;
+    gameOverScreen.querySelector(".stat-level").textContent = gameData.level;
+    gameOverScreen.querySelector(".stat-kills").textContent = gameData.enemiesDefeated;
 };
 
 // Função chamada quando o player morre
@@ -796,7 +802,8 @@ const restartGame = () => {
     invadersProjectiles.length = 0;
     playerProjectiles.length = 0;
     gameData.score = 0;
-    gameData.level = 1; // Começa do nível 1!
+    gameData.level = 1;
+    gameData.enemiesDefeated = 0; // zera abates
     obstacles.length = 0;
     boss = null;
     bossActive = false;
@@ -829,6 +836,7 @@ const goToMainMenu = () => {
     playerProjectiles.length = 0;
     gameData.score = 0;
     gameData.level = 1;
+    gameData.enemiesDefeated = 0; // zera abates
     obstacles.length = 0;
     boss = null;
     bossActive = false;
@@ -838,7 +846,6 @@ const goToMainMenu = () => {
         shootLoopTimeout = null;
     }
 };
-
 // Controles de teclado para mover e atirar
 addEventListener("keydown", (event) => {
     const key = event.key.toLowerCase();
