@@ -139,15 +139,14 @@ shipButtons.forEach((btn, idx) => {
             <div>${shipHistories[idx].text}</div>
         `;
         const rect = btn.getBoundingClientRect();
-        shipTooltip.style.left = '${rect.left + rect.width / 2 - 120}px';
-        shipTooltip.style.top = '${rect.top - 70}px';
+        shipTooltip.style.left = `${rect.left + rect.width / 2 - 120}px`;
+        shipTooltip.style.top = `${rect.top - 70}px`;
         shipTooltip.style.display = "block";
     });
     btn.addEventListener('mouseleave', () => {
         shipTooltip.style.display = "none";
     });
 });
-
 
 // ====== PLAYER ======
 let player = new Player(canvas.width, canvas.height, selectedShipIndex);
